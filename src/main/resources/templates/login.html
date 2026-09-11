@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head th:replace="~{fragments/head :: head('Iniciar sesión')}"></head>
+<body class="auth-bg">
+    <div class="auth-card">
+        <div class="auth-logo"><i class="bi bi-hospital"></i></div>
+        <h1>Bienvenido</h1>
+        <p class="muted">Ingrese sus credenciales para acceder al sistema</p>
+
+        <div th:if="${error}" class="alert alert-pastel-danger" th:text="${error}"></div>
+        <div th:if="${exito}" class="alert alert-pastel-success" th:text="${exito}"></div>
+
+        <form th:action="@{/login}" method="post">
+            <div class="mb-3">
+                <label class="form-label" for="username">Usuario</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-person"></i></span>
+                    <input class="form-control" id="username" name="username" th:value="${username != null} ? ${username} : ''" placeholder="Ingrese su usuario" autofocus required>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="password">Contraseña</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                    <input type="password" class="form-control" id="password" name="password" placeholder="Ingrese su contraseña" required>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-pastel-primary w-100">Ingresar</button>
+        </form>
+
+        <div class="text-center mt-4">
+            <a class="link-pastel" th:href="@{/recuperar}">Olvidé mi contraseña</a>
+        </div>
+    </div>
+</body>
+<footer th:replace="~{fragments/panel :: scripts}"></footer>
+</html>

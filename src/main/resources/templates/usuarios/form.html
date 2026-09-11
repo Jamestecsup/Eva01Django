@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head th:replace="~{fragments/head :: head('Usuarios')}"></head>
+<body>
+    <div class="app-layout">
+        <nav th:replace="~{fragments/panel :: menu('usuarios')}"></nav>
+        <div class="app-main">
+            <header th:replace="~{fragments/panel :: topbar}"></header>
+            <main class="content">
+                <div class="page-header">
+                    <div>
+                        <h1 th:text="${titulo}">Nuevo usuario</h1>
+                        <p>Complete la información de la cuenta de usuario</p>
+                    </div>
+                    <a class="btn btn-outline-pastel" th:href="@{/usuarios}">
+                        <i class="bi bi-arrow-left"></i> Volver
+                    </a>
+                </div>
+
+                <div th:if="${error}" class="alert alert-pastel-danger" th:text="${error}"></div>
+
+                <div class="card">
+                    <form th:action="@{/usuarios/guardar}" method="post" th:object="${usuario}">
+                        <input type="hidden" th:field="*{id}">
+
+                        <div class="card-title">Datos de acceso</div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label" for="username">Usuario</label>
+                                <input class="form-control" id="username" th:field="*{username}" minlength="4" maxlength="50" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="password">Contraseña</label>
+                                <input type="password" class="form-control" id="password" th:field="*{password}"
+                                       th:required="${usuario.id == null}" minlength="6"
+                                       th:placeholder="${usuario.id != null} ? 'Dejar en blanco para no cambiar' : 'Mínimo 6 caracteres'">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="rolId">Rol</label>
+                                <select class="form-select" id="rolId" th:field="*{rolId}" required>
+                                    <option value="">Seleccione un rol</option>
+                                    <option th:each="rol : ${roles}" th:value="${rol.id}" th:text="${rol.nombre}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="estado">Estado</label>
+                                <select class="form-select" id="estado" th:field="*{estado}">
+                                    <option th:each="estado : ${estados}" th:value="${estado.name()}" th:text="${estado.name()}"></option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <hr class="pastel-divider">
+
+                        <div class="card-title">Datos del empleado</div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label" for="nombres">Nombres</label>
+                                <input class="form-control" id="nombres" th:field="*{nombres}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="apellidos">Apellidos</label>
+                                <input class="form-control" id="apellidos" th:field="*{apellidos}" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label" for="dni">DNI</label>
+                                <input class="form-control" id="dni" th:field="*{dni}" pattern="\d{8}" maxlength="8" title="El DNI debe tener 8 dígitos" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label" for="correo">Correo electrónico</label>
+                                <input type="email" class="form-control" id="correo" th:field="*{correo}">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label" for="telefono">Teléfono</label>
+                                <input class="form-control" id="telefono" th:field="*{telefono}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="areaId">Área</label>
+                                <select class="form-select" id="areaId" th:field="*{areaId}" required>
+                                    <option value="">Seleccione un área</option>
+                                    <option th:each="area : ${areas}" th:value="${area.id}" th:text="${area.nombre}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="cargo">Cargo</label>
+                                <input class="form-control" id="cargo" th:field="*{cargo}" placeholder="Ej.: Médico general">
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <a class="btn btn-outline-pastel" th:href="@{/usuarios}">Cancelar</a>
+                            <button type="submit" class="btn btn-pastel-primary">Guardar</button>
+                        </div>
+                    </form>
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+<footer th:replace="~{fragments/panel :: scripts}"></footer>
+</html>

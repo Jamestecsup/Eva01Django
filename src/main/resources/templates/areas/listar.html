@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head th:replace="~{fragments/head :: head('Áreas')}"></head>
+<body>
+    <div class="app-layout">
+        <nav th:replace="~{fragments/panel :: menu('areas')}"></nav>
+        <div class="app-main">
+            <header th:replace="~{fragments/panel :: topbar}"></header>
+            <main class="content">
+                <div class="page-header">
+                    <div>
+                        <h1>Gestión de áreas</h1>
+                        <p>Administre las áreas asistenciales y administrativas del hospital</p>
+                    </div>
+                    <div class="page-actions" th:if="${#sets.contains(session.permisosSesion, 'AREAS:CREAR')}">
+                        <a class="btn btn-pastel-success" th:href="@{/areas/nuevo}">
+                            <i class="bi bi-plus-lg"></i> Nueva área
+                        </a>
+                    </div>
+                </div>
+
+                <div th:if="${exito}" class="alert alert-pastel-success" th:text="${exito}"></div>
+                <div th:if="${error}" class="alert alert-pastel-danger" th:text="${error}"></div>
+
+                <div class="card">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Área</th>
+                                    <th>Descripción</th>
+                                    <th>Empleados</th>
+                                    <th>Estado</th>
+                                    <th class="text-end">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="area : ${areas}">
+                                    <td th:text="${area.nombre}">Área</td>
+                                    <td th:text="${area.descripcion != null} ? ${area.descripcion} : '-'">Descripción</td>
+                                    <td th:text="${area.empleados.size()}">0</td>
+                                    <td>
+                                        <span class="badge" th:classappend="${area.estado.name() == 'ACTIVO'} ? 'badge-pastel-green' : 'badge-pastel-red'"
+                                              th:text="${area.estado.name()}"></span>
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="page-actions justify-content-end">
+                                            <a class="btn btn-light-soft btn-sm" th:href="@{/areas/editar/{id}(id=${area.id})}"
+                                               th:if="${#sets.contains(session.permisosSesion, 'AREAS:EDITAR')}" title="Editar">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <form th:if="${area.estado.name() == 'INACTIVO' and #sets.contains(session.permisosSesion, 'AREAS:EDITAR')}"
+                                                  th:action="@{/areas/activar/{id}(id=${area.id})}" method="post">
+                                                <button type="submit" class="btn btn-pastel-success btn-sm" title="Activar">
+                                                    <i class="bi bi-check-circle"></i>
+                                                </button>
+                                            </form>
+                                            <form th:if="${area.estado.name() == 'ACTIVO' and #sets.contains(session.permisosSesion, 'AREAS:ELIMINAR')}"
+                                                  th:action="@{/areas/desactivar/{id}(id=${area.id})}" method="post"
+                                                  onsubmit="return confirm('¿Desactivar esta área?');">
+                                                <button type="submit" class="btn btn-pastel-danger btn-sm" title="Desactivar">
+                                                    <i class="bi bi-x-circle"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(areas)}">
+                                    <td colspan="5" class="text-center text-muted py-4">No hay áreas registradas</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+<footer th:replace="~{fragments/panel :: scripts}"></footer>
+</html>

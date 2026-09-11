@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head th:replace="~{fragments/head :: head('Acceso denegado')}"></head>
+<body class="acceso-denegado">
+    <div class="card">
+        <div class="auth-logo mx-auto"><i class="bi bi-shield-exclamation"></i></div>
+        <h1>Acceso denegado</h1>
+        <p class="muted">Su rol no cuenta con los permisos necesarios para acceder a este módulo.</p>
+        <div class="d-flex justify-content-center gap-2">
+            <a class="btn btn-pastel-primary" th:href="@{/dashboard}">Volver al escritorio</a>
+            <a class="btn btn-pastel-danger" th:href="@{/logout}">Cerrar sesión</a>
+        </div>
+    </div>
+</body>
+<footer th:replace="~{fragments/panel :: scripts}"></footer>
+</html>

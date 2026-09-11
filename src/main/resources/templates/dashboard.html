@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head th:replace="~{fragments/head :: head('Escritorio')}"></head>
+<body>
+    <div class="app-layout">
+        <nav th:replace="~{fragments/panel :: menu('dashboard')}"></nav>
+        <div class="app-main">
+            <header th:replace="~{fragments/panel :: topbar}"></header>
+            <main class="content">
+                <div class="page-header">
+                    <div>
+                        <h1>Escritorio</h1>
+                        <p th:text="${'Bienvenido(a) ' + usuario.nombreCompleto()}">Bienvenido</p>
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6 col-xl-3" th:if="${totalUsuarios != null}">
+                        <div class="stat-card stat-blue">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="stat-value" th:text="${totalUsuarios}">0</div>
+                                    <div class="stat-label">Usuarios registrados</div>
+                                </div>
+                                <i class="bi bi-people fs-2 opacity-50"></i>
+                            </div>
+                            <a class="link-pastel" th:href="@{/usuarios}">Ver detalle</a>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 col-xl-3" th:if="${totalRoles != null}">
+                        <div class="stat-card stat-lavender">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="stat-value" th:text="${totalRoles}">0</div>
+                                    <div class="stat-label">Roles y permisos</div>
+                                </div>
+                                <i class="bi bi-patch-check fs-2 opacity-50"></i>
+                            </div>
+                            <a class="link-pastel" th:href="@{/roles}">Ver detalle</a>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 col-xl-3" th:if="${totalAreas != null}">
+                        <div class="stat-card stat-green">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="stat-value" th:text="${totalAreas}">0</div>
+                                    <div class="stat-label">Áreas activas</div>
+                                </div>
+                                <i class="bi bi-diagram-3 fs-2 opacity-50"></i>
+                            </div>
+                            <a class="link-pastel" th:href="@{/areas}">Ver detalle</a>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 col-xl-3" th:if="${totalAuditorias != null}">
+                        <div class="stat-card stat-pink">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="stat-value" th:text="${totalAuditorias}">0</div>
+                                    <div class="stat-label">Registros de auditoría</div>
+                                </div>
+                                <i class="bi bi-journal-check fs-2 opacity-50"></i>
+                            </div>
+                            <a class="link-pastel" th:href="@{/auditoria}">Ver detalle</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mt-4">
+                    <div class="card-title">Información de la cuenta</div>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="mb-1"><strong>Usuario:</strong> <span th:text="${usuario.username}"></span></div>
+                            <div class="mb-1"><strong>Nombre:</strong> <span th:text="${usuario.nombreCompleto()}"></span></div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-1"><strong>Rol:</strong> <span th:text="${usuario.rol != null} ? ${usuario.rol.nombre} : 'Sin rol'"></span></div>
+                            <div class="mb-1"><strong>Área:</strong>
+                                <span th:text="${usuario.empleado != null and usuario.empleado.area != null} ? ${usuario.empleado.area.nombre} : 'Sin área'"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-1"><strong>Último acceso:</strong>
+                                <span th:text="${usuario.ultimoAcceso != null} ? ${#temporals.format(usuario.ultimoAcceso, 'dd/MM/yyyy HH:mm')} : 'Nunca'"></span>
+                            </div>
+                            <div class="mb-1"><strong>Estado:</strong>
+                                <span class="badge" th:classappend="${usuario.estado.name() == 'ACTIVO'} ? 'badge-pastel-green' : 'badge-pastel-red'"
+                                      th:text="${usuario.estado.name()}"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+<footer th:replace="~{fragments/panel :: scripts}"></footer>
+</html>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head th:replace="~{fragments/head :: head('Auditoría')}"></head>
+<body>
+    <div class="app-layout">
+        <nav th:replace="~{fragments/panel :: menu('auditoria')}"></nav>
+        <div class="app-main">
+            <header th:replace="~{fragments/panel :: topbar}"></header>
+            <main class="content">
+                <div class="page-header">
+                    <div>
+                        <h1>Auditoría del sistema</h1>
+                        <p>Registro de las operaciones críticas realizadas por los usuarios</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Usuario</th>
+                                    <th>Acción</th>
+                                    <th>Entidad</th>
+                                    <th>Detalle</th>
+                                    <th>IP</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="registro : ${auditorias}">
+                                    <td th:text="${#temporals.format(registro.fecha, 'dd/MM/yyyy HH:mm:ss')}" class="text-nowrap">fecha</td>
+                                    <td th:text="${registro.usuario != null} ? ${registro.usuario.username} : 'Sistema'">usuario</td>
+                                    <td>
+                                        <span class="badge badge-pastel-lavender" th:text="${registro.accion}"></span>
+                                    </td>
+                                    <td th:text="${registro.entidad}">entidad</td>
+                                    <td th:text="${registro.detalle}">detalle</td>
+                                    <td th:text="${registro.ip != null} ? ${registro.ip} : '-'">ip</td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(auditorias)}">
+                                    <td colspan="6" class="text-center text-muted py-4">No hay registros de auditoría</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+<footer th:replace="~{fragments/panel :: scripts}"></footer>
+</html>
