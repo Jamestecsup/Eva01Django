@@ -12,10 +12,10 @@
 
         <form th:action="@{/login}" method="post">
             <div class="mb-3">
-                <label class="form-label" for="username">Usuario</label>
+                <label class="form-label" for="username">Usuario o correo</label>
                 <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-person"></i></span>
-                    <input class="form-control" id="username" name="username" th:value="${username != null} ? ${username} : ''" placeholder="Ingrese su usuario" autofocus required>
+                    <input class="form-control" id="username" name="username" th:value="${username != null} ? ${username} : ''" placeholder="Ingrese su usuario o correo" autofocus required>
                 </div>
             </div>
             <div class="mb-3">

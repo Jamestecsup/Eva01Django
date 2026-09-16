@@ -30,8 +30,9 @@ public class AuthService {
         this.auditoriaService = auditoriaService;
     }
 
-    public Usuario login(String username, String password, String ip) {
-        Usuario usuario = usuarioRepository.findByUsernameIgnoreCase(username)
+    public Usuario login(String identificador, String password, String ip) {
+        Usuario usuario = usuarioRepository.findByUsernameIgnoreCase(identificador)
+                .or(() -> usuarioRepository.findByEmpleadoCorreoIgnoreCase(identificador))
                 .orElseThrow(() -> new NegocioException("Usuario o contraseña incorrectos"));
 
         if (usuario.getEstado() == Estado.INACTIVO) {
