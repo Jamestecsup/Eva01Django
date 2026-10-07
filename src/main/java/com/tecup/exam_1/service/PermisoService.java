@@ -5,6 +5,7 @@ import com.tecup.exam_1.exception.NegocioException;
 import com.tecup.exam_1.exception.RecursoNoEncontradoException;
 import com.tecup.exam_1.model.Estado;
 import com.tecup.exam_1.model.Permiso;
+import com.tecup.exam_1.model.Usuario;
 import com.tecup.exam_1.repository.PermisoRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,9 +24,11 @@ public class PermisoService {
     );
 
     private final PermisoRepository permisoRepository;
+    private final AuditoriaService auditoriaService;
 
-    public PermisoService(PermisoRepository permisoRepository) {
+    public PermisoService(PermisoRepository permisoRepository, AuditoriaService auditoriaService) {
         this.permisoRepository = permisoRepository;
+        this.auditoriaService = auditoriaService;
     }
 
     @Transactional(readOnly = true)
@@ -48,18 +51,21 @@ public class PermisoService {
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el permiso con id " + id));
     }
 
-    public Permiso crear(PermisoRequest request) {
+    public Permiso crear(PermisoRequest request, Usuario actor, String ip) {
         validarUnico(request.getModulo(), request.getNombre(), null);
         Permiso permiso = new Permiso();
         permiso.setNombre(request.getNombre().toUpperCase());
         permiso.setModulo(request.getModulo().toUpperCase());
         permiso.setDescripcion(request.getDescripcion());
         permiso.setEstado(Estado.valueOf(request.getEstado() != null ? request.getEstado() : "ACTIVO"));
-        return permisoRepository.save(permiso);
+        permiso = permisoRepository.save(permiso);
+        auditar(actor, ip, "CREAR", "PERMISO", "Se creó el permiso " + permiso.clave());
+        return permiso;
     }
 
-    public Permiso editar(Long id, PermisoRequest request) {
+    public Permiso editar(Long id, PermisoRequest request, Usuario actor, String ip) {
         Permiso permiso = obtener(id);
+        String claveAnterior = permiso.clave();
         validarUnico(request.getModulo(), request.getNombre(), id);
         permiso.setNombre(request.getNombre().toUpperCase());
         permiso.setModulo(request.getModulo().toUpperCase());
@@ -67,7 +73,13 @@ public class PermisoService {
         if (request.getEstado() != null) {
             permiso.setEstado(Estado.valueOf(request.getEstado()));
         }
-        return permisoRepository.save(permiso);
+        permiso = permisoRepository.save(permiso);
+        auditar(actor, ip, "EDITAR", "PERMISO", "Se actualizó el permiso: " + claveAnterior + " → " + permiso.clave());
+        return permiso;
+    }
+
+    private void auditar(Usuario actor, String ip, String accion, String entidad, String detalle) {
+        auditoriaService.registrar(actor, accion, entidad, detalle, ip);
     }
 
     private void validarUnico(String modulo, String nombre, Long idActual) {

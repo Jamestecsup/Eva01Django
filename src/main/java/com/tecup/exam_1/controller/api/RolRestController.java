@@ -5,7 +5,11 @@ import com.tecup.exam_1.dto.MensajeResponse;
 import com.tecup.exam_1.dto.RolRequest;
 import com.tecup.exam_1.model.Estado;
 import com.tecup.exam_1.model.Rol;
+import com.tecup.exam_1.model.Usuario;
+import com.tecup.exam_1.seguridad.SeguridadService;
 import com.tecup.exam_1.service.RolService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,9 +24,11 @@ import java.util.stream.Collectors;
 public class RolRestController {
 
     private final RolService rolService;
+    private final SeguridadService seguridadService;
 
-    public RolRestController(RolService rolService) {
+    public RolRestController(RolService rolService, SeguridadService seguridadService) {
         this.rolService = rolService;
+        this.seguridadService = seguridadService;
     }
 
     @GetMapping
@@ -50,31 +56,42 @@ public class RolRestController {
     }
 
     @PostMapping
-    public ResponseEntity<Rol> crear(@Valid @RequestBody RolRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(rolService.crear(request));
+    public ResponseEntity<Rol> crear(@Valid @RequestBody RolRequest request, HttpServletRequest http, HttpSession session) {
+        Usuario actor = seguridadService.usuarioActual(session);
+        String ip = seguridadService.ipActual(http);
+        return ResponseEntity.status(HttpStatus.CREATED).body(rolService.crear(request, actor, ip));
     }
 
     @PutMapping("/{id}")
-    public Rol editar(@PathVariable Long id, @Valid @RequestBody RolRequest request) {
-        return rolService.editar(id, request);
+    public Rol editar(@PathVariable Long id, @Valid @RequestBody RolRequest request, HttpServletRequest http, HttpSession session) {
+        Usuario actor = seguridadService.usuarioActual(session);
+        String ip = seguridadService.ipActual(http);
+        return rolService.editar(id, request, actor, ip);
     }
 
     @PutMapping("/{id}/permisos")
     public ResponseEntity<MensajeResponse> asignarPermisos(@PathVariable Long id,
-                                                           @RequestBody AsignarPermisosRequest request) {
-        rolService.asignarPermisos(id, request.getPermisoIds());
+                                                           @RequestBody AsignarPermisosRequest request,
+                                                           HttpServletRequest http, HttpSession session) {
+        Usuario actor = seguridadService.usuarioActual(session);
+        String ip = seguridadService.ipActual(http);
+        rolService.asignarPermisos(id, request.getPermisoIds(), actor, ip);
         return ResponseEntity.ok(MensajeResponse.ok("Permisos asignados correctamente"));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<MensajeResponse> eliminar(@PathVariable Long id) {
-        rolService.desactivar(id);
+    public ResponseEntity<MensajeResponse> eliminar(@PathVariable Long id, HttpServletRequest http, HttpSession session) {
+        Usuario actor = seguridadService.usuarioActual(session);
+        String ip = seguridadService.ipActual(http);
+        rolService.desactivar(id, actor, ip);
         return ResponseEntity.ok(MensajeResponse.ok("Rol desactivado correctamente"));
     }
 
     @PostMapping("/{id}/activar")
-    public ResponseEntity<MensajeResponse> activar(@PathVariable Long id) {
-        rolService.activar(id);
+    public ResponseEntity<MensajeResponse> activar(@PathVariable Long id, HttpServletRequest http, HttpSession session) {
+        Usuario actor = seguridadService.usuarioActual(session);
+        String ip = seguridadService.ipActual(http);
+        rolService.activar(id, actor, ip);
         return ResponseEntity.ok(MensajeResponse.ok("Rol activado correctamente"));
     }
 }

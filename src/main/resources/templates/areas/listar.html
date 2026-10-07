@@ -62,6 +62,13 @@
                                                     <i class="bi bi-x-circle"></i>
                                                 </button>
                                             </form>
+                                            <form th:if="${#sets.contains(session.permisosSesion, 'AREAS:ELIMINAR')}"
+                                                  th:action="@{/areas/eliminar/{id}(id=${area.id})}" method="post"
+                                                  onsubmit="return confirm('¿Eliminar permanentemente esta área? Esta acción no se puede deshacer.');">
+                                                <button type="submit" class="btn btn-outline-danger btn-sm" title="Eliminar permanentemente">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
                                         </div>
                                     </td>
                                 </tr>

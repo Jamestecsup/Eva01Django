@@ -5,9 +5,11 @@ import com.tecup.exam_1.dto.RolRequest;
 import com.tecup.exam_1.exception.NegocioException;
 import com.tecup.exam_1.model.Estado;
 import com.tecup.exam_1.model.Rol;
+import com.tecup.exam_1.model.Usuario;
 import com.tecup.exam_1.seguridad.SeguridadService;
 import com.tecup.exam_1.service.PermisoService;
 import com.tecup.exam_1.service.RolService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -68,22 +70,25 @@ public class RolController {
     @PostMapping("/guardar")
     public String guardar(@ModelAttribute("rol") RolRequest request,
                           HttpSession session,
+                          HttpServletRequest http,
                           RedirectAttributes flash) {
         try {
+            Usuario actor = seguridadService.usuarioActual(session);
+            String ip = seguridadService.ipActual(http);
             if (request.getId() == null) {
                 if (!seguridadService.tienePermiso(session, "ROLES", "CREAR")) {
                     return "redirect:/acceso-denegado";
                 }
-                Rol creado = rolService.crear(request);
+                Rol creado = rolService.crear(request, actor, ip);
                 if (request.getPermisoIds() != null && !request.getPermisoIds().isEmpty()) {
-                    rolService.asignarPermisos(creado.getId(), request.getPermisoIds());
+                    rolService.asignarPermisos(creado.getId(), request.getPermisoIds(), actor, ip);
                 }
                 flash.addFlashAttribute("exito", "Rol creado correctamente");
             } else {
                 if (!seguridadService.tienePermiso(session, "ROLES", "EDITAR")) {
                     return "redirect:/acceso-denegado";
                 }
-                rolService.editar(request.getId(), request);
+                rolService.editar(request.getId(), request, actor, ip);
                 flash.addFlashAttribute("exito", "Rol actualizado correctamente");
             }
             return "redirect:/roles";
@@ -94,21 +99,25 @@ public class RolController {
     }
 
     @PostMapping("/desactivar/{id}")
-    public String desactivar(@PathVariable Long id, HttpSession session, RedirectAttributes flash) {
+    public String desactivar(@PathVariable Long id, HttpSession session, HttpServletRequest http, RedirectAttributes flash) {
         if (!seguridadService.tienePermiso(session, "ROLES", "ELIMINAR")) {
             return "redirect:/acceso-denegado";
         }
-        rolService.desactivar(id);
-        flash.addFlashAttribute("exito", "Rol desactivado");
+        try {
+            rolService.desactivar(id, seguridadService.usuarioActual(session), seguridadService.ipActual(http));
+            flash.addFlashAttribute("exito", "Rol desactivado");
+        } catch (NegocioException ex) {
+            flash.addFlashAttribute("error", ex.getMessage());
+        }
         return "redirect:/roles";
     }
 
     @PostMapping("/activar/{id}")
-    public String activar(@PathVariable Long id, HttpSession session, RedirectAttributes flash) {
+    public String activar(@PathVariable Long id, HttpSession session, HttpServletRequest http, RedirectAttributes flash) {
         if (!seguridadService.tienePermiso(session, "ROLES", "EDITAR")) {
             return "redirect:/acceso-denegado";
         }
-        rolService.activar(id);
+        rolService.activar(id, seguridadService.usuarioActual(session), seguridadService.ipActual(http));
         flash.addFlashAttribute("exito", "Rol activado");
         return "redirect:/roles";
     }
@@ -132,11 +141,14 @@ public class RolController {
     public String guardarPermisos(@PathVariable Long id,
                                   @ModelAttribute("asignacion") AsignarPermisosRequest request,
                                   HttpSession session,
+                                  HttpServletRequest http,
                                   RedirectAttributes flash) {
         if (!seguridadService.tienePermiso(session, "ROLES", "EDITAR")) {
             return "redirect:/acceso-denegado";
         }
-        rolService.asignarPermisos(id, request.getPermisoIds() != null ? request.getPermisoIds() : Set.of());
+        Usuario actor = seguridadService.usuarioActual(session);
+        String ip = seguridadService.ipActual(http);
+        rolService.asignarPermisos(id, request.getPermisoIds() != null ? request.getPermisoIds() : Set.of(), actor, ip);
         flash.addFlashAttribute("exito", "Permisos asignados correctamente");
         return "redirect:/roles";
     }

@@ -82,7 +82,7 @@ public class DataSeeder implements CommandLineRunner {
             request.setNombre(nombre);
             request.setDescripcion("Área: " + nombre);
             request.setEstado("ACTIVO");
-            areaService.crear(request);
+            areaService.crear(request, null, "0.0.0.0");
         });
     }
 
@@ -96,7 +96,7 @@ public class DataSeeder implements CommandLineRunner {
             request.setNombre(accion);
             request.setDescripcion("Permite " + accion + " en el módulo " + modulo);
             request.setEstado("ACTIVO");
-            permisoService.crear(request);
+            permisoService.crear(request, null, "0.0.0.0");
         }));
     }
 
@@ -112,9 +112,9 @@ public class DataSeeder implements CommandLineRunner {
             request.setNombre(nombre);
             request.setDescripcion("Rol del sistema: " + nombre);
             request.setEstado("ACTIVO");
-            Rol creado = rolService.crear(request);
+            Rol creado = rolService.crear(request, null, "0.0.0.0");
             if (nombre.equals("SUPER ADMINISTRADOR") || nombre.equals("Administrador")) {
-                rolService.asignarPermisos(creado.getId(), todosIds);
+                rolService.asignarPermisos(creado.getId(), todosIds, null, "0.0.0.0");
             } else if (nombre.equals("Director")) {
                 Set<Long> directivos = todos.stream()
                         .filter(p -> p.getModulo().equals("DASHBOARD")
@@ -122,13 +122,13 @@ public class DataSeeder implements CommandLineRunner {
                                 || p.getModulo().equals("AUDITORIA") && p.getNombre().equals("VER"))
                         .map(Permiso::getId)
                         .collect(Collectors.toSet());
-                rolService.asignarPermisos(creado.getId(), directivos);
+                rolService.asignarPermisos(creado.getId(), directivos, null, "0.0.0.0");
             } else {
                 Set<Long> basicos = todos.stream()
                         .filter(p -> p.getModulo().equals("DASHBOARD") && p.getNombre().equals("VER"))
                         .map(Permiso::getId)
                         .collect(Collectors.toSet());
-                rolService.asignarPermisos(creado.getId(), basicos);
+                rolService.asignarPermisos(creado.getId(), basicos, null, "0.0.0.0");
             }
         });
     }

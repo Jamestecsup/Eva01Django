@@ -4,8 +4,10 @@ import com.tecup.exam_1.dto.AreaRequest;
 import com.tecup.exam_1.exception.NegocioException;
 import com.tecup.exam_1.model.Area;
 import com.tecup.exam_1.model.Estado;
+import com.tecup.exam_1.model.Usuario;
 import com.tecup.exam_1.seguridad.SeguridadService;
 import com.tecup.exam_1.service.AreaService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -61,19 +63,22 @@ public class AreaController {
     @PostMapping("/guardar")
     public String guardar(@ModelAttribute("area") AreaRequest request,
                           HttpSession session,
+                          HttpServletRequest http,
                           RedirectAttributes flash) {
         try {
+            Usuario actor = seguridadService.usuarioActual(session);
+            String ip = seguridadService.ipActual(http);
             if (request.getId() == null) {
                 if (!seguridadService.tienePermiso(session, "AREAS", "CREAR")) {
                     return "redirect:/acceso-denegado";
                 }
-                areaService.crear(request);
+                areaService.crear(request, actor, ip);
                 flash.addFlashAttribute("exito", "Área creada correctamente");
             } else {
                 if (!seguridadService.tienePermiso(session, "AREAS", "EDITAR")) {
                     return "redirect:/acceso-denegado";
                 }
-                areaService.editar(request.getId(), request);
+                areaService.editar(request.getId(), request, actor, ip);
                 flash.addFlashAttribute("exito", "Área actualizada correctamente");
             }
             return "redirect:/areas";
@@ -84,22 +89,40 @@ public class AreaController {
     }
 
     @PostMapping("/desactivar/{id}")
-    public String desactivar(@PathVariable Long id, HttpSession session, RedirectAttributes flash) {
+    public String desactivar(@PathVariable Long id, HttpSession session, HttpServletRequest http, RedirectAttributes flash) {
         if (!seguridadService.tienePermiso(session, "AREAS", "ELIMINAR")) {
             return "redirect:/acceso-denegado";
         }
-        areaService.desactivar(id);
-        flash.addFlashAttribute("exito", "Área desactivada");
+        try {
+            areaService.desactivar(id, seguridadService.usuarioActual(session), seguridadService.ipActual(http));
+            flash.addFlashAttribute("exito", "Área desactivada");
+        } catch (NegocioException ex) {
+            flash.addFlashAttribute("error", ex.getMessage());
+        }
         return "redirect:/areas";
     }
 
     @PostMapping("/activar/{id}")
-    public String activar(@PathVariable Long id, HttpSession session, RedirectAttributes flash) {
+    public String activar(@PathVariable Long id, HttpSession session, HttpServletRequest http, RedirectAttributes flash) {
         if (!seguridadService.tienePermiso(session, "AREAS", "EDITAR")) {
             return "redirect:/acceso-denegado";
         }
-        areaService.activar(id);
+        areaService.activar(id, seguridadService.usuarioActual(session), seguridadService.ipActual(http));
         flash.addFlashAttribute("exito", "Área activada");
+        return "redirect:/areas";
+    }
+
+    @PostMapping("/eliminar/{id}")
+    public String eliminar(@PathVariable Long id, HttpSession session, HttpServletRequest http, RedirectAttributes flash) {
+        if (!seguridadService.tienePermiso(session, "AREAS", "ELIMINAR")) {
+            return "redirect:/acceso-denegado";
+        }
+        try {
+            areaService.eliminar(id, seguridadService.usuarioActual(session), seguridadService.ipActual(http));
+            flash.addFlashAttribute("exito", "Área eliminada permanentemente");
+        } catch (NegocioException ex) {
+            flash.addFlashAttribute("error", ex.getMessage());
+        }
         return "redirect:/areas";
     }
 }

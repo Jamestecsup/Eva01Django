@@ -11,7 +11,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -118,6 +120,20 @@ public class UsuarioService {
         if (request.getRolId() == null || request.getAreaId() == null) {
             throw new NegocioException("Debe seleccionar un rol y un área");
         }
+
+        // Capturar valores anteriores
+        String usernameAnterior = usuario.getUsername();
+        Rol rolAnterior = usuario.getRol();
+        Estado estadoAnterior = usuario.getEstado();
+        Empleado empleado = usuario.getEmpleado();
+        String nombresAnterior = empleado != null ? empleado.getNombres() : null;
+        String apellidosAnterior = empleado != null ? empleado.getApellidos() : null;
+        String dniAnterior = empleado != null ? empleado.getDni() : null;
+        String correoAnterior = empleado != null ? empleado.getCorreo() : null;
+        String telefonoAnterior = empleado != null ? empleado.getTelefono() : null;
+        String cargoAnterior = empleado != null ? empleado.getCargo() : null;
+        Area areaAnterior = empleado != null ? empleado.getArea() : null;
+
         if (request.getUsername() != null && !request.getUsername().isBlank()) {
             String nuevoUsername = request.getUsername().trim().toLowerCase();
             if (!nuevoUsername.equalsIgnoreCase(usuario.getUsername())
@@ -126,7 +142,6 @@ public class UsuarioService {
             }
             usuario.setUsername(nuevoUsername);
         }
-        Empleado empleado = usuario.getEmpleado();
         if (empleado == null) {
             empleado = new Empleado();
             empleado.setEstado(Estado.ACTIVO);
@@ -135,14 +150,60 @@ public class UsuarioService {
         if (empleado.getUsuario() != null && !empleado.getUsuario().getId().equals(usuario.getId())) {
             throw new NegocioException("El empleado vinculado pertenece a otra cuenta de usuario");
         }
-        aplicarDatosEmpleado(empleado, request, areaService.obtener(request.getAreaId()));
-        usuario.setRol(rolService.obtener(request.getRolId()));
+        Area areaNueva = areaService.obtener(request.getAreaId());
+        aplicarDatosEmpleado(empleado, request, areaNueva);
+        Rol rolNuevo = rolService.obtener(request.getRolId());
+        usuario.setRol(rolNuevo);
         if (request.getEstado() != null) {
             usuario.setEstado(Estado.valueOf(request.getEstado()));
         }
         usuario = usuarioRepository.save(usuario);
         empleadoRepository.save(empleado);
-        auditar(actor, ip, "EDITAR", "USUARIO", "Se actualizó el usuario " + usuario.getUsername());
+
+        // Construir detalle de auditoría específico
+        StringBuilder detalle = new StringBuilder("Se actualizó el usuario " + usuario.getUsername());
+        List<String> cambios = new ArrayList<>();
+
+        if (!Objects.equals(usernameAnterior, usuario.getUsername())) {
+            cambios.add("Username: " + usernameAnterior + " → " + usuario.getUsername());
+        }
+        if (!Objects.equals(rolAnterior, usuario.getRol())) {
+            cambios.add("Rol: " + (rolAnterior != null ? rolAnterior.getNombre() : "null") + " → " + (usuario.getRol() != null ? usuario.getRol().getNombre() : "null"));
+        }
+        if (estadoAnterior != usuario.getEstado()) {
+            cambios.add("Estado: " + estadoAnterior + " → " + usuario.getEstado());
+        }
+        if (empleado != null) {
+            if (!Objects.equals(nombresAnterior, empleado.getNombres())) {
+                cambios.add("Nombres: " + (nombresAnterior != null ? nombresAnterior : "") + " → " + (empleado.getNombres() != null ? empleado.getNombres() : ""));
+            }
+            if (!Objects.equals(apellidosAnterior, empleado.getApellidos())) {
+                cambios.add("Apellidos: " + (apellidosAnterior != null ? apellidosAnterior : "") + " → " + (empleado.getApellidos() != null ? empleado.getApellidos() : ""));
+            }
+            if (!Objects.equals(dniAnterior, empleado.getDni())) {
+                cambios.add("DNI: " + (dniAnterior != null ? dniAnterior : "") + " → " + (empleado.getDni() != null ? empleado.getDni() : ""));
+            }
+            if (!Objects.equals(correoAnterior, empleado.getCorreo())) {
+                cambios.add("Correo: " + (correoAnterior != null ? correoAnterior : "") + " → " + (empleado.getCorreo() != null ? empleado.getCorreo() : ""));
+            }
+            if (!Objects.equals(telefonoAnterior, empleado.getTelefono())) {
+                cambios.add("Teléfono: " + (telefonoAnterior != null ? telefonoAnterior : "") + " → " + (empleado.getTelefono() != null ? empleado.getTelefono() : ""));
+            }
+            if (!Objects.equals(cargoAnterior, empleado.getCargo())) {
+                cambios.add("Cargo: " + (cargoAnterior != null ? cargoAnterior : "") + " → " + (empleado.getCargo() != null ? empleado.getCargo() : ""));
+            }
+            if (!Objects.equals(areaAnterior, empleado.getArea())) {
+                cambios.add("Área: " + (areaAnterior != null ? areaAnterior.getNombre() : "null") + " → " + (empleado.getArea() != null ? empleado.getArea().getNombre() : "null"));
+            }
+        }
+
+        if (!cambios.isEmpty()) {
+            detalle.append(". ").append(String.join("; ", cambios));
+        } else {
+            detalle.append(" (sin cambios)");
+        }
+
+        auditar(actor, ip, "EDITAR", "USUARIO", detalle.toString());
         return usuario;
     }
 

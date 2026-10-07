@@ -35,7 +35,7 @@
                                         <span class="badge badge-pastel-lavender" th:text="${registro.accion}"></span>
                                     </td>
                                     <td th:text="${registro.entidad}">entidad</td>
-                                    <td th:text="${registro.detalle}">detalle</td>
+                                    <td style="white-space: pre-line; max-width: 400px;" th:utext="${#strings.replace(registro.detalle, '; ', '<br>')}">detalle</td>
                                     <td th:text="${registro.ip != null} ? ${registro.ip} : '-'">ip</td>
                                 </tr>
                                 <tr th:if="${#lists.isEmpty(auditorias)}">
