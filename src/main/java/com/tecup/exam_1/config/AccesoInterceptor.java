@@ -29,6 +29,13 @@ public class AccesoInterceptor implements HandlerInterceptor {
             return false;
         }
 
+        // Sincroniza la sesion con la base de datos: los cambios hechos por un
+        // administrador (permisos, rol, estado) se reflejan en esta misma peticion.
+        if (!seguridadService.refrescarSesion(session)) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return false;
+        }
+
         String modulo = moduloDe(ruta);
         if (modulo != null && !seguridadService.tienePermiso(session, modulo, "VER")) {
             response.sendRedirect(request.getContextPath() + "/acceso-denegado");
